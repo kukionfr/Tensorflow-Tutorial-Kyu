@@ -1,0 +1,4 @@
+tensorflow
+scipy
+matplotlib
+git+https://github.com/tensorflow/docs
