@@ -1,17 +1,10 @@
 # Created by .ignore support plugin (hsz.mobi)
 
-# Large Files
-fibro_train.tfcache.index
-fibro_train.tfcache.data-00000-of-00001
-fibro_val.tfcache.index
-fibro_val.tfcache.data-00000-of-00001
-fibro_test.tfcache.index
-fibro_test.tfcache.data-00000-of-00001
-
 # Unversioned folder
 .idea/
 .ipynb_checkpoints/
 cnn/
-cnn/**
 logs/
 venv/
+cache/
+training_1/

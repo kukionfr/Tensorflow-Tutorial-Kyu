@@ -1,6 +1,9 @@
 tensorflow
 tensorflow_datasets
 tensorflow_hub
+git+https://github.com/tensorflow/docs
+pydot
+graphviz
 keras-tuner
 scikit-learn
 scipy
@@ -13,8 +16,6 @@ pillow
 pyspark
 ipywidgets
 repr
-scipy
-matplotlib
-git+https://github.com/tensorflow/docs
+jupyterlab
 
 #pip install -r requirements.txt
