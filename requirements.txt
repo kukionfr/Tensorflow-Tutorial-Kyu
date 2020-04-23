@@ -1,8 +1,7 @@
 tensorflow
-<<<<<<< HEAD
 tensorflow_datasets
 tensorflow_hub
-kerastuner
+keras-tuner
 scikit-learn
 scipy
 matplotlib
@@ -14,8 +13,8 @@ pillow
 pyspark
 ipywidgets
 repr
-=======
 scipy
 matplotlib
+git+https://github.com/tensorflow/docs
 
->>>>>>> 7177ee37f4bba95e88060aadeeda98df63d6dc6e
+#pip install -r requirements.txt

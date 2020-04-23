@@ -3,20 +3,15 @@
 # Large Files
 fibro_train.tfcache.index
 fibro_train.tfcache.data-00000-of-00001
-<<<<<<< HEAD
 fibro_val.tfcache.index
 fibro_val.tfcache.data-00000-of-00001
-=======
->>>>>>> 7177ee37f4bba95e88060aadeeda98df63d6dc6e
 fibro_test.tfcache.index
 fibro_test.tfcache.data-00000-of-00001
 
 # Unversioned folder
 .idea/
-<<<<<<< HEAD
 .ipynb_checkpoints/
 cnn/
+cnn/**
 logs/
-=======
->>>>>>> 7177ee37f4bba95e88060aadeeda98df63d6dc6e
 venv/
