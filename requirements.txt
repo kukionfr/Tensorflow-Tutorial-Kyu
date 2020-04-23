@@ -1,4 +1,21 @@
 tensorflow
+<<<<<<< HEAD
+tensorflow_datasets
+tensorflow_hub
+kerastuner
+scikit-learn
+scipy
+matplotlib
+pyyaml
+h5py
+pandas
+seaborn
+pillow
+pyspark
+ipywidgets
+repr
+=======
 scipy
 matplotlib
 
+>>>>>>> 7177ee37f4bba95e88060aadeeda98df63d6dc6e
