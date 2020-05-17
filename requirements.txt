@@ -14,16 +14,16 @@ h5py
 pandas
 seaborn
 pillow
-pyspark
-repr
+# pyspark
+# repr
 jupyterlab
 ipywidgets
-PrettyTable
+# PrettyTable
 
-git+https://github.com/matterport/Mask_RCNN
+# git+https://github.com/matterport/Mask_RCNN
 cython
 opencv-python
-imgaug
-keras
+# imgaug
+# keras
 
 #pip install -r requirements.txt
