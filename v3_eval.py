@@ -6,6 +6,9 @@ import numpy as np
 import tensorflow_hub as hub
 import pathlib
 
+print(tf.__version__)
+
+
 def read_and_label(file_path):
     img = tf.io.read_file(file_path)
     img = decode_img(img)
@@ -22,6 +25,7 @@ def decode_img(img):
 def get_label(file_path):
     parts = tf.strings.split(file_path, os.path.sep)
     return tf.reshape(tf.where(parts[-4] == CLASS_NAMES), [])
+
 
 def augment(image, label):
     image = tf.image.random_hue(image, max_delta=0.05, seed=5)
@@ -40,22 +44,26 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 64
 shuffle_buffer_size = 1000000
 
-test_data_dir = r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test'
+test_data_dir = r'C:\Users\kuki\OneDrive - Johns Hopkins\Research\Skin\RCNN data\torefine'
 test_data_dir = pathlib.Path(test_data_dir)
 CLASS_NAMES = np.array(
     [item.name for item in test_data_dir.glob('*') if item.name != "LICENSE.txt" and item.name != ".DS_store"])
 
 
-def load_compile(net,lr):
-    model = tf.keras.models.load_model('cnn/'+net+'/'+lr+'/full_model.h5', compile=False, custom_objects={'KerasLayer':hub.KerasLayer})
+def load_compile(net, lr):
+    model = tf.keras.models.load_model('cnn/' + net + '/' + lr + '/full_model.h5', compile=False,
+                                       custom_objects={'KerasLayer': hub.KerasLayer}
+                                       )
     model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                   optimizer=tf.keras.optimizers.Adam(),
                   metrics=['accuracy'])
     return model
 
-ResV2 = load_compile('ResV2','e3')
-IncV3 = load_compile('IncV3','e3')
-IncV3n = load_compile('IncV3n','e3')
+
+ResV2 = load_compile('ResV2', 'e3')
+IncV3 = load_compile('IncV3', 'e3')
+IncV3n = load_compile('IncV3n', 'e3')
+
 
 def load_dataset(dataset_dir):
     dataset_dir = pathlib.Path(dataset_dir)
@@ -72,156 +80,101 @@ def evalmodels(path, model):
     with tf.device('/device:GPU:1'):
         results = model.evaluate(datasett.batch(1000))
     # print(os.path.basename(path), results[-1] * 100)
-    aa.append(np.around(results[-1]*100,decimals=1))
+    aa.append(np.around(results[-1] * 100, decimals=1))
+
 
 inputs = tf.keras.Input(shape=(100, 100, 3))
 y1 = ResV2(inputs)
 y2 = IncV3(inputs)
 y3 = IncV3n(inputs)
-y4 = maximum([y1,y2,y3])
+y4 = maximum([y1, y2, y3])
 outputs = tf.keras.layers.Softmax()(y4)
 
 ensemble_model_max = tf.keras.Model(inputs=inputs, outputs=outputs)
 
 ensemble_model_max.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                       optimizer=tf.keras.optimizers.Adam(),
-                       metrics=[tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),'accuracy'])
+                           optimizer=tf.keras.optimizers.Adam(),
+                           metrics=[tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), 'accuracy'])
+#
+# inputs2 = tf.keras.Input(shape=(100, 100, 3))
+# y5 = ResV2(inputs2)
+# y6 = IncV3(inputs2)
+# y7 = IncV3n(inputs2)
+# y8 = average([y5, y6, y7])
+# outputs2 = tf.keras.layers.Softmax()(y8)
+#
+# ensemble_model_avg = tf.keras.Model(inputs=inputs2, outputs=outputs2)
+#
+# ensemble_model_avg.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+#                            optimizer=tf.keras.optimizers.Adam(),
+#                            metrics=[tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), 'accuracy'])
+#
+# inputs3 = tf.keras.Input(shape=(100, 100, 3))
+# y9 = ResV2(inputs3)
+# y10 = IncV3(inputs3)
+# y11 = IncV3n(inputs3)
+# y12 = minimum([y9, y10, y11])
+# outputs3 = tf.keras.layers.Softmax()(y12)
+#
+# ensemble_model_min = tf.keras.Model(inputs=inputs3, outputs=outputs3)
+#
+# ensemble_model_min.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+#                            optimizer=tf.keras.optimizers.Adam(),
+#                            metrics=[tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True), 'accuracy'])
 
-inputs2 = tf.keras.Input(shape=(100, 100, 3))
-y5 = ResV2(inputs2)
-y6 = IncV3(inputs2)
-y7 = IncV3n(inputs2)
-y8 = average([y5,y6,y7])
-outputs2 = tf.keras.layers.Softmax()(y8)
+model = ensemble_model_max
 
-ensemble_model_avg = tf.keras.Model(inputs=inputs2, outputs=outputs2)
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec001',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec003',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec007',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec010',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec016',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec019',model)
+# # print('---------------------------------------------------------------------------')
+#
+#
+#
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\young\sec023',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\young\sec025',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\young\sec029',model)
+# # print('---------------------------------------------------------------------------')
+#
+#
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec031',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec037',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec041',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec045',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec049',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec062',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec068',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec070',model)
+# # print('---------------------------------------------------------------------------')
+#
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\old\sec076',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\old\sec078',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\old\sec082',model)
+# # print('---------------------------------------------------------------------------')
+# evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\old\sec088',model)
+# # print('---------------------------------------------------------------------------')
 
-ensemble_model_avg.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                       optimizer=tf.keras.optimizers.Adam(),
-                       metrics=[tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),'accuracy'])
-
-inputs3 = tf.keras.Input(shape=(100, 100, 3))
-y9 = ResV2(inputs3)
-y10 = IncV3(inputs3)
-y11 = IncV3n(inputs3)
-y12 = minimum([y9,y10,y11])
-outputs3 = tf.keras.layers.Softmax()(y12)
-
-ensemble_model_min = tf.keras.Model(inputs=inputs3, outputs=outputs3)
-
-ensemble_model_min.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                       optimizer=tf.keras.optimizers.Adam(),
-                       metrics=[tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),'accuracy'])
-
-model = ensemble_model_min
-
-
-aa=[]
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec001',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec003',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec007',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec010',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec016',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\young\sec019',model)
-# print('---------------------------------------------------------------------------')
-
-
-
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\young\sec023',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\young\sec025',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\young\sec029',model)
-# print('---------------------------------------------------------------------------')
-
-
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec031',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec037',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec041',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec045',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec049',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec062',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec068',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train\old\sec070',model)
-# print('---------------------------------------------------------------------------')
-
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\old\sec076',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\old\sec078',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\old\sec082',model)
-# print('---------------------------------------------------------------------------')
-evalmodels(r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test\old\sec088',model)
-# print('---------------------------------------------------------------------------')
-
+aa = []
+evalmodels(r'C:\Users\kuki\OneDrive - Johns Hopkins\Research\Skin\RCNN data\torefine\young\sec001', model)
+evalmodels(r'C:\Users\kuki\OneDrive - Johns Hopkins\Research\Skin\RCNN data\torefine\young\sec003', model)
+evalmodels(r'C:\Users\kuki\OneDrive - Johns Hopkins\Research\Skin\RCNN data\torefine\young\sec007', model)
 print(aa)
-
-#
-# def balance(data_dir):
-#     tmp = [0]
-#     for CLASS, n in zip(CLASS_NAMES, samplesize):
-#         secs = [_ for _ in data_dir.glob(CLASS+'/*')]
-#         for idx,sec in enumerate(secs):
-#             sec = os.path.join(sec,'image\*.jpg')
-#             list_ds = tf.data.Dataset.list_files(sec)
-#             # subsample
-#             list_ds = (list_ds
-#                        .shuffle(shuffle_buffer_size)
-#                        .take(n)
-#                        )
-#             labeled_ds = list_ds.map(read_and_label, num_parallel_calls=AUTOTUNE)
-#
-#             # add augment
-#             sampleN = len(list(labeled_ds))
-#             while sampleN < n:
-#                 labeled_ds_aug = (labeled_ds
-#                                   .shuffle(shuffle_buffer_size)
-#                                   .take(n-sampleN)
-#                                   .map(augment,num_parallel_calls=AUTOTUNE)
-#                                   )
-#                 labeled_ds = labeled_ds.concatenate(labeled_ds_aug)
-#                 sampleN = len(list(labeled_ds))
-#             print('list_ds: ',len(list(labeled_ds)),CLASS)
-#             # append
-#             if tmp[0]==0:
-#                 tmp[idx]=labeled_ds
-#             else:
-#                 labeled_ds = tmp[0].concatenate(labeled_ds)
-#                 tmp[0]=labeled_ds
-#         print(CLASS,': sample size =',len(list(tmp[0])))
-#     return tmp[0].shuffle(shuffle_buffer_size)
-#
-# test_data_dir = r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test'
-# test_data_dir = pathlib.Path(test_data_dir)
-# samplesize=[300,400]
-# test_labeled_ds = balance(test_data_dir)
-#
-# test_ds = (test_labeled_ds
-#            .cache("./cache/fibro_test.tfcache")
-#            .shuffle(buffer_size=shuffle_buffer_size)
-#            .repeat()
-#            .batch(BATCH_SIZE)
-#            .prefetch(buffer_size=AUTOTUNE)  # time it takes to produce next element
-#            )
-# test_image_count = len(list(test_labeled_ds))
-# print('test set size : ', test_image_count)
-# TEST_STEPS = test_image_count // BATCH_SIZE
-#
-# results = model_cnnA.evaluate(test_ds, steps=TEST_STEPS)
-#
-# probability_model = tf.keras.Sequential([model_cnnA,
-#                                          tf.keras.layers.Softmax()])
-#
-# predictions = probability_model.predict(test_ds)

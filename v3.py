@@ -57,7 +57,7 @@ val_fraction = 30
 shuffle_buffer_size = 1000000  # take first 100 from dataset and shuffle and pick one.
 samplesize=[300,400] #old, young
 # list location of all training images
-train_data_dir = r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\train'
+train_data_dir = r'C:\Users\kuki\OneDrive - Johns Hopkins\Research\Skin\RCNN data\train'
 train_data_dir = pathlib.Path(train_data_dir)
 CLASS_NAMES = np.array(
     [item.name for item in train_data_dir.glob('*') if item.name != "LICENSE.txt" and item.name != ".DS_store"])
@@ -135,7 +135,7 @@ val_ds = (train_labeled_ds
           .batch(BATCH_SIZE)
           .prefetch(buffer_size=AUTOTUNE))
 
-test_data_dir = r'C:\Users\kuki\Desktop\Research\Skin\RCNN data\test'
+test_data_dir = r'C:\Users\kuki\OneDrive - Johns Hopkins\Research\Skin\RCNN data\test'
 test_data_dir = pathlib.Path(test_data_dir)
 test_labeled_ds = balance(test_data_dir)
 
@@ -330,19 +330,19 @@ namers = ['Adam_t4']
 opts = [tf.keras.optimizers.Adam(lrr)]
 
 
-for idx,opt in enumerate(opts):
-
-    namer = namers[idx]
-    # evaluateit(Alex,'Alex',opt)
-    # evaluateit(ToyRes,'ToyRes',opt)
-    print(namer)
-    print('ResV2')
-    evaluateit(ResV2,'ResV2',opt)
-    print('IncV3')
-    evaluateit(IncV3,'IncV3',opt)
-    print('IncV3n')
-    evaluateit(IncV3n,'IncV3n',opt)
-    # evaluateit(Xcep,'Xcep',opt)
+# for idx,opt in enumerate(opts):
+#
+#     namer = namers[idx]
+#     # evaluateit(Alex,'Alex',opt)
+#     # evaluateit(ToyRes,'ToyRes',opt)
+#     print(namer)
+#     print('ResV2')
+#     evaluateit(ResV2,'ResV2',opt)
+#     print('IncV3')
+#     evaluateit(IncV3,'IncV3',opt)
+#     print('IncV3n')
+#     evaluateit(IncV3n,'IncV3n',opt)
+#     # evaluateit(Xcep,'Xcep',opt)
 
 # print('train_ds ')
 # for img,label in train_ds.take(100).as_numpy_iterator():
