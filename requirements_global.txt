@@ -29,7 +29,7 @@ h5py
 pyyaml
 
 ##TF1
-tensorflow-gpu==1.15.2
+tensorflow-gpu==1.15.3
 keras== 2.2.5
 
 ##TF2
