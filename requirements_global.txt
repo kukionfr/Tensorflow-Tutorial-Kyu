@@ -1,0 +1,47 @@
+#python util
+wheel
+jupyterlab
+cython
+
+#data science
+numpy
+scipy
+pandas
+xlrd
+PrettyTable
+
+#plotting
+matplotlib
+addcopyfighandler
+seaborn
+
+#image analysis
+pillow
+scikit-image
+opencv-python
+imgaug
+# openslide-python
+
+#machine learning
+scikit-learn
+pymc3
+h5py
+pyyaml
+
+##TF1
+tensorflow-gpu==1.15.0
+keras== 2.2.5
+
+##TF2
+# tensorflow
+# tensorflow_hub
+# tensorflow_datasets
+# tensorflow_addons
+# keras-tuner
+# graphviz
+# pydot
+# git+https://github.com/tensorflow/docs
+
+##GIT for Mask_RCNN, Pycocotool
+# https://github.com/matterport/Mask_RCNN
+# git+https://github.com/philferriere/cocoapi.git#egg=pycocotools^&subdirectory=PythonAPI
