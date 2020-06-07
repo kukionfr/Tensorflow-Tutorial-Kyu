@@ -55,9 +55,9 @@ IMG_WIDTH = 100
 BATCH_SIZE = 64
 val_fraction = 30
 shuffle_buffer_size = 1000000  # take first 100 from dataset and shuffle and pick one.
-samplesize=[300,400] #old, young
+samplesize = [300, 400] #old, young
 # list location of all training images
-train_data_dir = r'C:\Users\kuki\OneDrive - Johns Hopkins\Research\Skin\RCNN data\train'
+train_data_dir = '/home/kuki/Desktop/Research/cnn_dataset/train'
 train_data_dir = pathlib.Path(train_data_dir)
 CLASS_NAMES = np.array(
     [item.name for item in train_data_dir.glob('*') if item.name != "LICENSE.txt" and item.name != ".DS_store"])
@@ -68,7 +68,7 @@ def balance(data_dir):
     for CLASS, n in zip(CLASS_NAMES, samplesize):
         secs = [_ for _ in data_dir.glob(CLASS+'/*')]
         for idx,sec in enumerate(secs):
-            sec = os.path.join(sec,'image\*.jpg')
+            sec = os.path.join(sec, 'image/*.jpg')
             list_ds = tf.data.Dataset.list_files(sec)
             # subsample
             list_ds = (list_ds
@@ -87,14 +87,14 @@ def balance(data_dir):
                                   )
                 labeled_ds = labeled_ds.concatenate(labeled_ds_aug)
                 sampleN = len(list(labeled_ds))
-            print('list_ds: ',len(list(labeled_ds)),CLASS)
+            print('list_ds: ', len(list(labeled_ds)),CLASS)
             # append
-            if tmp[0]==0:
-                tmp[idx]=labeled_ds
+            if tmp[0] == 0:
+                tmp[idx] = labeled_ds
             else:
                 labeled_ds = tmp[0].concatenate(labeled_ds)
-                tmp[0]=labeled_ds
-        print(CLASS,': sample size =',len(list(tmp[0])))
+                tmp[0] = labeled_ds
+        print(CLASS, ': sample size =', len(list(tmp[0])))
     return tmp[0].shuffle(shuffle_buffer_size)
 
 
@@ -108,15 +108,15 @@ print('training set size after split : ', train_image_count2)
 STEPS_PER_EPOCH = train_image_count2 // BATCH_SIZE
 VALIDATION_STEPS = val_image_count // BATCH_SIZE
 
-plt.figure(figsize=(10,10))
-for idx,elem in enumerate(train_labeled_ds.take(25)):
-    img = elem[0]
-    label = elem[1]
-    ax = plt.subplot(5,5,idx+1)
-    plt.imshow(img)
-    plt.title(CLASS_NAMES[label].title())
-    plt.axis('off')
-plt.show()
+# plt.figure(figsize=(10,10))
+# for idx, elem in enumerate(train_labeled_ds.take(25)):
+#     img = elem[0]
+#     label = elem[1]
+#     ax = plt.subplot(5,5,idx+1)
+#     plt.imshow(img)
+#     plt.title(CLASS_NAMES[label].title())
+#     plt.axis('off')
+# plt.show()
 
 train_ds = (train_labeled_ds
             .skip(val_image_count)
@@ -135,7 +135,7 @@ val_ds = (train_labeled_ds
           .batch(BATCH_SIZE)
           .prefetch(buffer_size=AUTOTUNE))
 
-test_data_dir = r'C:\Users\kuki\OneDrive - Johns Hopkins\Research\Skin\RCNN data\test'
+test_data_dir = '/home/kuki/Desktop/Research/cnn_dataset/test'
 test_data_dir = pathlib.Path(test_data_dir)
 test_labeled_ds = balance(test_data_dir)
 
@@ -170,7 +170,7 @@ def get_callbacks(name):
         modeling.EpochDots(),
         tf.keras.callbacks.EarlyStopping(monitor='val_sparse_categorical_crossentropy',
                                          patience=50, restore_best_weights=True),
-        #     tf.keras.callbacks.TensorBoard(log_dir/name, histogram_freq=1),
+        # tf.keras.callbacks.TensorBoard(log_dir/name, histogram_freq=1),
         tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_dir + "/{}/cp.ckpt".format(name),
                                            verbose=0,
                                            monitor='val_sparse_categorical_crossentropy',
