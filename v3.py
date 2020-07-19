@@ -2,8 +2,6 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Dropout, MaxPool2D, Flatten, GlobalAveragePooling2D, add, average, \
     maximum
-import tensorflow_addons as tfa
-
 from tensorflow_docs import modeling
 import tensorflow_datasets as tfds
 import tensorflow_hub as hub
@@ -13,6 +11,19 @@ import matplotlib.pyplot as plt
 import os
 import pathlib
 import shutil
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+  # Restrict TensorFlow to only allocate 1GB of memory on the first GPU
+  try:
+    tf.config.experimental.set_virtual_device_configuration(
+        gpus[0],
+        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=8500)])
+    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+  except RuntimeError as e:
+    # Virtual devices must be set before GPUs have been initialized
+    print(e)
 
 tfds.disable_progress_bar()  # disable tqdm progress bar
 AUTOTUNE = tf.data.experimental.AUTOTUNE
@@ -57,7 +68,7 @@ val_fraction = 30
 shuffle_buffer_size = 1000000  # take first 100 from dataset and shuffle and pick one.
 samplesize = [300, 400] #old, young
 # list location of all training images
-train_data_dir = '/home/kuki/Desktop/Research/cnn_dataset/train'
+train_data_dir = '/home/kuki/Desktop/Synology/aging/data/cnn_dataset/train'
 train_data_dir = pathlib.Path(train_data_dir)
 CLASS_NAMES = np.array(
     [item.name for item in train_data_dir.glob('*') if item.name != "LICENSE.txt" and item.name != ".DS_store"])
@@ -120,7 +131,7 @@ VALIDATION_STEPS = val_image_count // BATCH_SIZE
 
 train_ds = (train_labeled_ds
             .skip(val_image_count)
-            .cache("./cache/fibro_train.tfcache")
+            # .cache("./cache/fibro_train.tfcache")
             .shuffle(buffer_size=shuffle_buffer_size)
             .repeat()
             .batch(BATCH_SIZE)
@@ -130,12 +141,12 @@ train_ds = (train_labeled_ds
 
 val_ds = (train_labeled_ds
           .take(val_image_count)
-          .cache("./cache/fibro_val.tfcache")
+          # .cache("./cache/fibro_val.tfcache")
           .repeat()
           .batch(BATCH_SIZE)
           .prefetch(buffer_size=AUTOTUNE))
 
-test_data_dir = '/home/kuki/Desktop/Research/cnn_dataset/test'
+test_data_dir = '/home/kuki/Desktop/Synology/aging/data/cnn_dataset/test'
 test_data_dir = pathlib.Path(test_data_dir)
 test_labeled_ds = balance(test_data_dir)
 
@@ -151,7 +162,7 @@ plt.show()
 
 
 test_ds = (test_labeled_ds
-           .cache("./cache/fibro_test.tfcache")
+           # .cache("./cache/fibro_test.tfcache")
            .shuffle(buffer_size=shuffle_buffer_size)
            .repeat()
            .batch(BATCH_SIZE)
@@ -189,7 +200,7 @@ def get_callbacks(name):
 #     staircase=False)
 
 
-def compilefit(model, name, opt, max_epochs=1000):
+def compilefit(model, name, opt, max_epochs=300):
     optimizer = opt
     model.compile(optimizer=optimizer,
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
@@ -217,7 +228,7 @@ def compilefit(model, name, opt, max_epochs=1000):
     return model_history
 
 
-def plotdf(dfobj, condition, lr=None):
+def plotdf(dfobj, condition):
     pd.DataFrame(dfobj).plot(title=condition)
     dfobj.pop('loss')
     dfobj.pop('val_loss')
@@ -231,12 +242,11 @@ def plotdf(dfobj, condition, lr=None):
     dfobj1.pop('accuracy')
     dfobj1.pop('val_accuracy')
     pd.DataFrame(dfobj1).plot(title=condition)
-    if lr is not 'decay':
-        dfobj2.pop('sparse_categorical_crossentropy')
-        dfobj2.pop('val_sparse_categorical_crossentropy')
-        dfobj2.pop('accuracy')
-        dfobj2.pop('val_accuracy')
-        pd.DataFrame(dfobj2).plot(title=condition)
+    dfobj2.pop('sparse_categorical_crossentropy')
+    dfobj2.pop('val_sparse_categorical_crossentropy')
+    dfobj2.pop('accuracy')
+    dfobj2.pop('val_accuracy')
+    pd.DataFrame(dfobj2).plot(title=condition)
     plt.show()
 
 
@@ -316,9 +326,9 @@ Xcep = tf.keras.Sequential([
 
 def evaluateit(network,networkname, opt):
     # with tf.device('/device:GPU:1'):
-    histories[networkname+namer] = compilefit(network, 'cnn/'+networkname+'/'+namer, opt, max_epochs=1000)
+    histories[networkname] = compilefit(network, 'cnn/'+networkname, opt, max_epochs=300)
     results = network.evaluate(test_ds, steps=TEST_STEPS)
-    plotdf(histories[networkname+namer].history, networkname + ' lr='+namer)
+    plotdf(histories[networkname].history, networkname)
     print('test acc', results[-1] * 100)
 
 
@@ -326,10 +336,9 @@ def evaluateit(network,networkname, opt):
 # opts = [tfa.optimizers.AdamW(lrr), tf.keras.optimizers.SGD(lrr),tf.keras.optimizers.RMSprop(lrr)]
 lrr=1e-3
 
-namers = ['Adam_t4']
-opts = [tf.keras.optimizers.Adam(lrr)]
 
 
+evaluateit(ResV2,'ResV2t2',tf.keras.optimizers.Adam(lrr))
 # for idx,opt in enumerate(opts):
 #
 #     namer = namers[idx]
